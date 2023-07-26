@@ -1,0 +1,24 @@
+version: '3.0'
+
+services:
+  grafana:
+    container_name: 'isarantidis-mqttstreaming-datasource'
+    build:
+      context: ./.config
+      args:
+        grafana_version: ${GRAFANA_VERSION:-9.5.6}
+    ports:
+      - 3000:3000/tcp
+    volumes:
+      - ./dist:/var/lib/grafana/plugins/isarantidis-mqttstreaming-datasource
+      - ./provisioning:/etc/grafana/provisioning
+  mqtt:
+    image: eclipse-mosquitto
+    container_name: mqtt
+    volumes:
+      - ./docker/mosquitto/config:/mosquitto/config
+      - ./docker/mosquitto/data:/mosquitto/data
+      - ./docker/mosquitto/log:/mosquitto/log
+    ports:
+      - 1883:1883
+      - 9001:9001    
