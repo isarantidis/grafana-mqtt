@@ -54,8 +54,6 @@ func createMqttClient(qos uint8, instanceSettings backend.DataSourceInstanceSett
 		return nil, fmt.Errorf("error parsing settings: %v", err)
 	}
 
-	logger.Info(fmt.Sprintf("%s", datasourceSettings))
-
 	var options = mqtt.NewClientOptions()
 	options.SetUsername(datasourceSettings.Username)
 	options.SetPassword(datasourceSettings.Password)
