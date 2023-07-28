@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/url"
 	"path"
+	"regexp"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
@@ -106,20 +107,34 @@ func (d *Datasource) QueryData(ctx context.Context, req *backend.QueryDataReques
 	return response, nil
 }
 
-type queryModel struct {
+type QueryModel struct {
 	Topic         string `json:"topic,omitempty"`
 	UseInterval   bool   `json:"useInterval,omitempty"`
 	IncludeSchema bool   `json:"includeSchema,omitempty"`
+}
+
+var regex *regexp.Regexp
+
+func init() {
+	var err error
+	regex, err = regexp.Compile(`[^\S-]`)
+	if err != nil {
+		panic(err.Error())
+	}
 }
 
 func (d *Datasource) query(ctx context.Context, pCtx backend.PluginContext, query backend.DataQuery) backend.DataResponse {
 	var response backend.DataResponse
 
 	// Unmarshal the JSON into our queryModel.
-	var qm queryModel
+	var qm QueryModel
 	err := json.Unmarshal(query.JSON, &qm)
 	if err != nil {
 		return backend.ErrDataResponse(backend.StatusBadRequest, fmt.Sprintf("json unmarshal: %v", err.Error()))
+	}
+
+	if regex.Match([]byte(qm.Topic)) {
+		return backend.ErrDataResponse(backend.StatusBadRequest, fmt.Sprintf(""))
 	}
 
 	// create data frame response.
@@ -134,7 +149,6 @@ func (d *Datasource) query(ctx context.Context, pCtx backend.PluginContext, quer
 
 	// add the frames to the response.
 	response.Frames = append(response.Frames, frame)
-
 	return response
 }
 
